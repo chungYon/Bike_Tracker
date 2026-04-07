@@ -185,7 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.getElementById('no-gpx-msg').classList.add('hidden');
                 document.getElementById('map').style.display = 'block';
                 // Small delay to allow CSS transitions to finish before Leaflet calculates size
-                setTimeout(() => loadMap(data.gpx_path), 300);
+                setTimeout(() => loadMap(data.gpx_path), 400);
             } else {
                 document.getElementById('no-gpx-msg').classList.remove('hidden');
                 document.getElementById('map').style.display = 'none';
@@ -229,6 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-shadow.png'
             }
         }).on('loaded', function (e) {
+            mapInstance.invalidateSize();
             mapInstance.fitBounds(e.target.getBounds());
         }).addTo(mapInstance);
     }
