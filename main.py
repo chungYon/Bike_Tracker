@@ -26,7 +26,11 @@ activities_df = None
 def load_data():
     global activities_df
     try:
-        activities_df = pd.read_csv(os.path.join(STRAVA_DATA_DIR, "activities.csv"))
+        csv_path = os.path.join(STRAVA_DATA_DIR, "activities.csv")
+        try:
+            activities_df = pd.read_csv(csv_path, encoding='utf-8')
+        except UnicodeDecodeError:
+            activities_df = pd.read_csv(csv_path, encoding='cp949')
         # Parse dates
         activities_df["Activity Date"] = pd.to_datetime(activities_df["Activity Date"], format="mixed", errors='coerce')
         # Sort by date
@@ -46,7 +50,7 @@ def get_streak():
         return {"streak": 0}
     
     # Get all unique year-week strings from riding days
-    df = activities_df[activities_df["Activity Type"] == "Ride"].copy()
+    df = activities_df[activities_df["Activity Type"].isin(["Ride", "라이딩"])].copy()
     if df.empty:
         return {"streak": 0}
         
@@ -87,7 +91,7 @@ def get_activities():
     if activities_df is None or activities_df.empty:
         return []
     
-    df = activities_df[activities_df["Activity Type"] == "Ride"].copy()
+    df = activities_df[activities_df["Activity Type"].isin(["Ride", "라이딩"])].copy()
     df["DateString"] = df["Activity Date"].dt.strftime("%Y-%m-%d")
     
     # Just return list of unique dates and some metadata
