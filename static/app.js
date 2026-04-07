@@ -3,17 +3,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const dashboardView = document.getElementById('dashboard-view');
     const analysisView = document.getElementById('analysis-view');
     const backBtn = document.getElementById('back-btn');
-    
+
     // Calendar Elements
     const calendarGrid = document.querySelector('.calendar-grid');
     const currentMonthDisplay = document.getElementById('current-month-display');
     const prevMonthBtn = document.getElementById('prev-month');
     const nextMonthBtn = document.getElementById('next-month');
-    
+
     // Global State
     let currentDate = new Date();
     let activitiesDates = [];
-    
+
     let mapInstance = null;
     let gpxLayer = null;
     let charts = {};
@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 li.innerHTML = `<a href="${item.link}" target="_blank">${item.title} <span>${item.date}</span></a>`;
                 newsList.appendChild(li);
             });
-        } catch(e) {
+        } catch (e) {
             console.error(e);
         }
     }
@@ -73,8 +73,8 @@ document.addEventListener("DOMContentLoaded", () => {
     async function fetchActivities() {
         try {
             const res = await fetch('/api/activities');
-            activitiesDates = await res.json(); 
-        } catch(e) {
+            activitiesDates = await res.json();
+        } catch (e) {
             console.error(e);
         }
     }
@@ -111,8 +111,8 @@ document.addEventListener("DOMContentLoaded", () => {
         for (let i = 1; i <= daysInMonth; i++) {
             const dayDiv = document.createElement('div');
             dayDiv.className = 'calendar-day';
-            const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-            
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
             const txt = document.createElement('span');
             txt.textContent = i;
             dayDiv.appendChild(txt);
@@ -120,8 +120,8 @@ document.addEventListener("DOMContentLoaded", () => {
             // check if there's activity
             const acts = activitiesDates.find(a => a.DateString === dateStr);
             if (acts) {
-                dayDiv.classList.add('has-activity');
-                
+                dayDiv.classList.add('ride-day');
+
                 // Add icons or click
                 acts['Activity ID'].forEach(actId => {
                     const actLink = document.createElement('div');
@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const res = await fetch(`/api/activity/${activityId}`);
             const data = await res.json();
-            
+
             if (data.error) {
                 alert("Could not load activity: " + data.error);
                 return;
@@ -151,11 +151,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             document.getElementById('activity-title').textContent = data['Activity Name'] || "Ride";
             document.getElementById('activity-date').textContent = data['Activity Date'] || "Unknown date";
-            
+
             // Format numbers
             const dist = data['Distance'] ? parseFloat(data['Distance']).toFixed(2) : "0.00";
             document.getElementById('act-dist').textContent = dist;
-            
+
             const time = data['Moving Time'] ? (parseFloat(data['Moving Time']) / 60).toFixed(0) : "0";
             document.getElementById('act-time').textContent = time;
 
@@ -203,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 endIconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-icon-end.png',
                 shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-shadow.png'
             }
-        }).on('loaded', function(e) {
+        }).on('loaded', function (e) {
             mapInstance.fitBounds(e.target.getBounds());
         }).addTo(mapInstance);
     }
@@ -212,7 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // destroy existing
         Object.values(charts).forEach(c => c.destroy());
         charts = {};
-        
+
         createPlaceholderChart('speedChart', 'Avg Speed (km/h)', (parseFloat(data['Average Speed'] || 0) * 3.6), 'rgba(54, 162, 235, 0.6)');
         createPlaceholderChart('hrChart', 'Avg HR (bpm)', data['Average Heart Rate'] || 0, 'rgba(255, 99, 132, 0.6)');
         createPlaceholderChart('cadenceChart', 'Avg Cadence', data['Average Cadence'] || 0, 'rgba(75, 192, 192, 0.6)');
@@ -220,7 +220,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function createPlaceholderChart(id, label, val, color) {
         const ctx = document.getElementById(id);
-        if(!ctx) return;
+        if (!ctx) return;
         charts[id] = new Chart(ctx, {
             type: 'bar',
             data: {

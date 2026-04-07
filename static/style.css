@@ -172,6 +172,12 @@ body.dark-mode {
     margin-top: 10px;
 }
 
+#current-month-display {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
 .calendar-controls button {
     background: var(--primary);
     color: white;

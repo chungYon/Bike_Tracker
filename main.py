@@ -5,6 +5,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timedelta
 import math
+import xml.etree.ElementTree as ET
+import requests
 
 app = FastAPI()
 
@@ -126,11 +128,21 @@ def get_activity_detail(activity_id: int):
 
 @app.get("/api/news")
 def get_news():
-    return [
-        {"title": "Tour de France Route Revealed", "date": "2024-05-10", "link": "#"},
-        {"title": "Giro d'Italia Stage 1 Results", "date": "2024-05-04", "link": "#"},
-        {"title": "New Specialized Tarmac SL8 Unveiled", "date": "2024-04-15", "link": "#"}
-    ]
+    try:
+        url = "https://news.google.com/rss/search?q=자전거+라이딩+OR+대회&hl=ko&gl=KR&ceid=KR:ko"
+        res = requests.get(url)
+        root = ET.fromstring(res.text)
+        items = root.findall('./channel/item')
+        news_list = []
+        for item in items[:5]:
+            title = item.find('title').text
+            link = item.find('link').text
+            pubDate = item.find('pubDate').text
+            news_list.append({"title": title, "date": pubDate[5:16], "link": link})
+        return news_list
+    except Exception as e:
+        print(f"Error fetching news: {e}")
+        return []
 
 # Mount endpoints for static and data
 os.makedirs("static", exist_ok=True)
