@@ -36,3 +36,15 @@ jobs:
         tags: |
           ${{ env.IMAGE_NAME }}:latest
           ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  deploy:
+    needs: build_and_push
+    if: github.event_name != 'pull_request'
+    runs-on: self-hosted
+    steps:
+    - name: Deploy to self-hosted runner
+      run: |
+        docker pull ${{ env.IMAGE_NAME }}:latest
+        docker stop bike_tracker || true
+        docker rm bike_tracker || true
+        docker run -d --restart unless-stopped --name bike_tracker -p 8000:8000 -v "C:\Users\apf_temp_admin\Documents\strava_activity\export_55559181:/app/data" -e STRAVA_DATA_DIR=/app/data ${{ env.IMAGE_NAME }}:latest
