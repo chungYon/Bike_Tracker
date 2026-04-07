@@ -9,6 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentMonthDisplay = document.getElementById('current-month-display');
     const prevMonthBtn = document.getElementById('prev-month');
     const nextMonthBtn = document.getElementById('next-month');
+    const prevYearBtn = document.getElementById('prev-year');
+    const nextYearBtn = document.getElementById('next-year');
 
     // Global State
     let currentDate = new Date();
@@ -34,6 +36,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         nextMonthBtn.addEventListener('click', () => {
             currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        prevYearBtn.addEventListener('click', () => {
+            currentDate.setFullYear(currentDate.getFullYear() - 1);
+            renderCalendar();
+        });
+
+        nextYearBtn.addEventListener('click', () => {
+            currentDate.setFullYear(currentDate.getFullYear() + 1);
             renderCalendar();
         });
 
