@@ -209,18 +209,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function loadMap(gpxUrl) {
-        if (!mapInstance) {
-            mapInstance = L.map('map').setView([0, 0], 2);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap'
-            }).addTo(mapInstance);
-        } else {
-            mapInstance.invalidateSize();
+        // Destroy existing map instance if it exists to avoid blank tile/bounds issue
+        if (mapInstance) {
+            mapInstance.remove();
+            mapInstance = null;
+            gpxLayer = null;
         }
 
-        if (gpxLayer) {
-            mapInstance.removeLayer(gpxLayer);
-        }
+        mapInstance = L.map('map').setView([37.5, 127.0], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(mapInstance);
 
         gpxLayer = new L.GPX(gpxUrl, {
             async: true,
