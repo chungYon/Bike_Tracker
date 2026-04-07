@@ -117,6 +117,14 @@ def get_activity_detail(activity_id: int):
         return {"error": "Not found"}
     
     act_dict = act.iloc[0].to_dict()
+    
+    # Sanitize Activity Name: if it contains replacement characters or looks broken, default to "Riding"
+    name = act_dict.get("Activity Name", "")
+    if isinstance(name, str) and ("" in name or "?" in name or len(name) == 0):
+        act_dict["Activity Name"] = "Riding"
+    elif not name or pd.isna(name):
+        act_dict["Activity Name"] = "Riding"
+
     # Handle NaNs
     for k, v in act_dict.items():
         if isinstance(v, float) and math.isnan(v):

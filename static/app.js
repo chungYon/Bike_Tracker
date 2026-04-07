@@ -163,9 +163,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const time = data['Moving Time'] ? (parseFloat(data['Moving Time']) / 60).toFixed(0) : "0";
             document.getElementById('act-time').textContent = time;
 
-            let rawSpd = data['Average Speed'] || 0;
-            // Converting m/s to km/h assuming Strava export gives m/s
-            document.getElementById('act-spd').textContent = (parseFloat(rawSpd) * 3.6).toFixed(1);
+            // Strava CSV has 'Average Speed(km/h)' or 'Average Speed'. 
+            // Based on earlier logs, it is 'Average Speed(km/h)'
+            let rawSpd = data['Average Speed(km/h)'] || data['Average Speed'] || 0;
+            document.getElementById('act-spd').textContent = parseFloat(rawSpd).toFixed(1);
 
             // Map & GPX
             if (data.gpx_available) {
