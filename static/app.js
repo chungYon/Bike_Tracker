@@ -121,14 +121,18 @@ document.addEventListener("DOMContentLoaded", () => {
             const acts = activitiesDates.find(a => a.DateString === dateStr);
             if (acts) {
                 dayDiv.classList.add('ride-day');
+                
+                // Allow clicking the entire day cell
+                if (acts['Activity ID'].length > 0) {
+                    dayDiv.onclick = () => openAnalysis(acts['Activity ID'][0]);
+                }
 
-                // Add icons or click
+                // Add icons for visual
                 acts['Activity ID'].forEach(actId => {
-                    const actLink = document.createElement('div');
-                    actLink.className = 'activity-indicator';
-                    actLink.innerHTML = `<i class="fa-solid fa-person-biking"></i> Ride`;
-                    actLink.onclick = () => openAnalysis(actId);
-                    dayDiv.appendChild(actLink);
+                    const actIndicator = document.createElement('div');
+                    actIndicator.className = 'activity-indicator';
+                    actIndicator.innerHTML = `<i class="fa-solid fa-person-biking"></i> Ride`;
+                    dayDiv.appendChild(actIndicator);
                 });
             }
 
