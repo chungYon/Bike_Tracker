@@ -49,4 +49,4 @@ jobs:
         docker stop bike_tracker 2>$null
         docker rm bike_tracker 2>$null
         $ErrorActionPreference = 'Stop'
-        docker run -d --restart unless-stopped --name bike_tracker -p 8000:8000 -v "C:\Users\apf_temp_admin\Documents\strava_activity\export_55559181:/app/data" -e STRAVA_DATA_DIR=/app/data ${{ env.IMAGE_NAME }}:latest
+        docker run -d --restart unless-stopped --name bike_tracker -p 8080:8000 -v "C:\Users\apf_temp_admin\Documents\strava_activity\export_55559181:/app/data" -e STRAVA_DATA_DIR=/app/data ${{ env.IMAGE_NAME }}:latest
