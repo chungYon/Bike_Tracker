@@ -235,25 +235,42 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function loadMapInto(mapDivId, gpxUrl, actId) {
+    async function loadMapInto(mapDivId, gpxUrl, actId) {
         const m = L.map(mapDivId).setView([37.5, 127.0], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap'
         }).addTo(m);
-
         mapInstances.push(m);
 
-        new L.GPX(gpxUrl, {
-            async: true,
-            marker_options: {
-                startIconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-icon-start.png',
-                endIconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-icon-end.png',
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-shadow.png'
+        try {
+            const res = await fetch(gpxUrl);
+            const text = await res.text();
+            const parser = new DOMParser();
+            const gpxDoc = parser.parseFromString(text, 'application/xml');
+
+            // Support both with and without namespace prefix
+            const trkpts = gpxDoc.querySelectorAll('trkpt');
+            const latlngs = [];
+            trkpts.forEach(pt => {
+                const lat = parseFloat(pt.getAttribute('lat'));
+                const lon = parseFloat(pt.getAttribute('lon'));
+                if (!isNaN(lat) && !isNaN(lon)) latlngs.push([lat, lon]);
+            });
+
+            if (latlngs.length > 0) {
+                const polyline = L.polyline(latlngs, { color: '#3b82f6', weight: 3 }).addTo(m);
+                // Start / End markers
+                L.circleMarker(latlngs[0], { radius: 8, color: '#22c55e', fillColor: '#22c55e', fillOpacity: 1 }).addTo(m).bindPopup('Start');
+                L.circleMarker(latlngs[latlngs.length - 1], { radius: 8, color: '#ef4444', fillColor: '#ef4444', fillOpacity: 1 }).addTo(m).bindPopup('End');
+                m.invalidateSize();
+                m.fitBounds(polyline.getBounds(), { padding: [20, 20] });
+            } else {
+                document.getElementById(`no-gpx-msg-${actId}`).classList.remove('hidden');
             }
-        }).on('loaded', function (e) {
-            m.invalidateSize();
-            m.fitBounds(e.target.getBounds());
-        }).addTo(m);
+        } catch (e) {
+            console.error('GPX load error:', e);
+            document.getElementById(`no-gpx-msg-${actId}`).classList.remove('hidden');
+        }
     }
 
     function renderChartsFor(actId, data) {
