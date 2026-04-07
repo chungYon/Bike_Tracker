@@ -28,11 +28,17 @@ def load_data():
     try:
         csv_path = os.path.join(STRAVA_DATA_DIR, "activities.csv")
         try:
-            activities_df = pd.read_csv(csv_path, encoding='utf-8')
-        except UnicodeDecodeError:
-            activities_df = pd.read_csv(csv_path, encoding='cp949')
-        # Parse dates
-        activities_df["Activity Date"] = pd.to_datetime(activities_df["Activity Date"], format="mixed", errors='coerce')
+            activities_df = pd.read_csv(csv_path, encoding='utf-8', encoding_errors='replace')
+        except:
+            activities_df = pd.read_csv(csv_path, encoding='cp949', encoding_errors='replace')
+        
+        # Parse dates and convert from UTC to Korean time
+        # The CSV likely has timestamps such as "Apr 5, 2026, 12:00:00 AM" which are naive.
+        dt_col = pd.to_datetime(activities_df["Activity Date"], format="mixed", errors='coerce')
+        if dt_col.dt.tz is None:
+            dt_col = dt_col.dt.tz_localize('UTC')
+        activities_df["Activity Date"] = dt_col.dt.tz_convert('Asia/Seoul')
+        
         # Sort by date
         activities_df = activities_df.sort_values(by="Activity Date", ascending=True)
     except Exception as e:
