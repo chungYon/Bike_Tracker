@@ -8,7 +8,7 @@ on:
 
 env:
   # Change this to your docker hub username and image name
-  IMAGE_NAME: chungyon/bike_tracker
+  IMAGE_NAME: chungchungyon/bike_tracker
 
 jobs:
   build_and_push:
