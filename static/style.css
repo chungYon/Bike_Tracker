@@ -166,8 +166,9 @@ body.dark-mode {
 /* Calendar */
 .calendar-controls {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
+    gap: 15px;
     margin-bottom: 20px;
     margin-top: 10px;
 }
