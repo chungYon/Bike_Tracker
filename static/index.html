@@ -75,15 +75,23 @@
                 <div id="no-gpx-msg" class="hidden">No GPX data available for this activity.</div>
             </div>
 
-            <div class="charts-container">
-                <div class="chart-card glass-card">
-                    <canvas id="speedChart"></canvas>
+            <div class="charts-wrapper" style="position: relative;">
+                <div class="charts-container" id="charts-container">
+                    <div class="chart-card glass-card">
+                        <canvas id="speedChart"></canvas>
+                    </div>
+                    <div class="chart-card glass-card">
+                        <canvas id="hrChart"></canvas>
+                    </div>
+                    <div class="chart-card glass-card">
+                        <canvas id="cadenceChart"></canvas>
+                    </div>
                 </div>
-                <div class="chart-card glass-card">
-                    <canvas id="hrChart"></canvas>
-                </div>
-                <div class="chart-card glass-card">
-                    <canvas id="cadenceChart"></canvas>
+                <div id="no-fit-overlay" class="hidden">
+                    <div class="overlay-content">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <p>해당 활동의 기록 데이터(FIT/GPX)가 없어 차트가 제공되지 않습니다.</p>
+                    </div>
                 </div>
             </div>
 

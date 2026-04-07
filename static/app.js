@@ -175,6 +175,13 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // Charts
+            if (data.gpx_available) {
+                document.getElementById('charts-container').classList.remove('blurred');
+                document.getElementById('no-fit-overlay').classList.add('hidden');
+            } else {
+                document.getElementById('charts-container').classList.add('blurred');
+                document.getElementById('no-fit-overlay').classList.remove('hidden');
+            }
             renderCharts(data);
 
         } catch (e) {

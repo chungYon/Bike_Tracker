@@ -28,8 +28,9 @@ def load_data():
     try:
         csv_path = os.path.join(STRAVA_DATA_DIR, "activities.csv")
         try:
-            activities_df = pd.read_csv(csv_path, encoding='utf-8', encoding_errors='replace')
-        except:
+            # Try strict UTF-8 first so it fails if it's CP949
+            activities_df = pd.read_csv(csv_path, encoding='utf-8')
+        except UnicodeDecodeError:
             activities_df = pd.read_csv(csv_path, encoding='cp949', encoding_errors='replace')
         
         # Parse dates and convert from UTC to Korean time
