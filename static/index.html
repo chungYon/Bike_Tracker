@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bike Tracker Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dark-mode">
+    <div class="background-glass"></div>
+    
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-bicycle"></i>
+            <span>BikeTracker</span>
+        </div>
+        <div class="nav-links">
+            <a href="#" id="nav-home" class="active">Dashboard</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Dashboard View -->
+        <div id="dashboard-view">
+            <div class="dashboard-header">
+                <div class="streak-card glass-card">
+                    <div class="streak-icon">🔥</div>
+                    <div class="streak-info">
+                        <h3>Current Streak</h3>
+                        <p class="streak-count" id="streak-counter">...</p>
+                        <span class="streak-sub">Weeks in a row</span>
+                    </div>
+                </div>
+                
+                <div class="news-card glass-card">
+                    <h3><i class="fa-solid fa-newspaper"></i> Cycling News</h3>
+                    <ul id="news-list" class="news-list">
+                        <!-- News items rendered here -->
+                    </ul>
+                </div>
+            </div>
+
+            <div class="calendar-card glass-card">
+                <h3><i class="fa-regular fa-calendar-days"></i> Riding Calendar</h3>
+                <div class="calendar-controls">
+                    <button id="prev-month">&lt;</button>
+                    <span id="current-month-display"></span>
+                    <button id="next-month">&gt;</button>
+                </div>
+                <div class="calendar-grid">
+                    <div class="day-name">Sun</div><div class="day-name">Mon</div><div class="day-name">Tue</div><div class="day-name">Wed</div><div class="day-name">Thu</div><div class="day-name">Fri</div><div class="day-name">Sat</div>
+                    <!-- Days generated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis View -->
+        <div id="analysis-view" class="hidden">
+            <button id="back-btn" class="glass-btn"><i class="fa-solid fa-arrow-left"></i> Back to Calendar</button>
+            <div class="analysis-header glass-card">
+                <h2 id="activity-title">Activity Name</h2>
+                <p id="activity-date">Date</p>
+                <div class="stats-row">
+                    <div class="stat"><i class="fa-solid fa-road"></i> <span id="act-dist"></span> km</div>
+                    <div class="stat"><i class="fa-solid fa-stopwatch"></i> <span id="act-time"></span> min</div>
+                    <div class="stat"><i class="fa-solid fa-bolt"></i> <span id="act-spd"></span> km/h</div>
+                </div>
+            </div>
+
+            <div class="map-container glass-card" id="map-container">
+                <div id="map"></div>
+                <div id="no-gpx-msg" class="hidden">No GPX data available for this activity.</div>
+            </div>
+
+            <div class="charts-container">
+                <div class="chart-card glass-card">
+                    <canvas id="speedChart"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <canvas id="hrChart"></canvas>
+                </div>
+                <div class="chart-card glass-card">
+                    <canvas id="cadenceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="photos-container glass-card hidden" id="photos-container">
+                <h3><i class="fa-solid fa-camera"></i> Photos</h3>
+                <div class="photo-gallery" id="photo-gallery"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Use a simple GPX parser for Leaflet -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>
