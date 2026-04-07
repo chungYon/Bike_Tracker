@@ -139,13 +139,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     dayDiv.onclick = () => openAnalysis(acts['Activity ID'][0]);
                 }
 
-                // Add icons for visual
-                acts['Activity ID'].forEach(actId => {
-                    const actIndicator = document.createElement('div');
-                    actIndicator.className = 'activity-indicator';
-                    actIndicator.innerHTML = `<i class="fa-solid fa-person-biking"></i> Ride`;
-                    dayDiv.appendChild(actIndicator);
-                });
+                // Show a single indicator (with count if multiple rides that day)
+                const count = acts['Activity ID'].length;
+                const actIndicator = document.createElement('div');
+                actIndicator.className = 'activity-indicator';
+                actIndicator.innerHTML = count > 1
+                    ? `<i class="fa-solid fa-person-biking"></i> ${count} Rides`
+                    : `<i class="fa-solid fa-person-biking"></i> Ride`;
+                dayDiv.appendChild(actIndicator);
             }
 
             calendarGrid.appendChild(dayDiv);
