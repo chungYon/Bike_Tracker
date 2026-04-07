@@ -1,4 +1,5 @@
 import os
+import gzip
 import pandas as pd
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -143,6 +144,61 @@ def get_activity_detail(activity_id: int):
             act_dict["gpx_available"] = False
     
     return act_dict
+
+@app.get("/api/activity/{activity_id}/track")
+def get_activity_track(activity_id: int):
+    """Return [{lat, lon}] list parsed from GPX, FIT, or FIT.GZ file."""
+    if activities_df is None:
+        return {"error": "No data"}
+
+    act = activities_df[activities_df["Activity ID"] == activity_id]
+    if act.empty:
+        return {"error": "Not found"}
+
+    filename = act.iloc[0].get("Filename")
+    if not filename or not isinstance(filename, str):
+        return {"coords": []}
+
+    filepath = os.path.join(STRAVA_DATA_DIR, filename)
+    if not os.path.exists(filepath):
+        return {"coords": []}
+
+    coords = []
+    try:
+        fname_lower = filename.lower()
+
+        if fname_lower.endswith(".gpx"):
+            # Parse GPX XML
+            tree = ET.parse(filepath)
+            root = tree.getroot()
+            ns = root.tag.split("}")[0].lstrip("{") if "}" in root.tag else ""
+            prefix = f"{{{ns}}}" if ns else ""
+            for trkpt in root.iter(f"{prefix}trkpt"):
+                lat = trkpt.get("lat")
+                lon = trkpt.get("lon")
+                if lat and lon:
+                    coords.append({"lat": float(lat), "lon": float(lon)})
+
+        elif fname_lower.endswith(".fit") or fname_lower.endswith(".fit.gz"):
+            from fitparse import FitFile
+            SEMICIRCLE_FACTOR = 180.0 / (2 ** 31)
+            if fname_lower.endswith(".fit.gz"):
+                with gzip.open(filepath, "rb") as gz:
+                    fitfile = FitFile(gz.read())
+            else:
+                fitfile = FitFile(filepath)
+            for record in fitfile.get_messages("record"):
+                fields = {f.name: f.value for f in record}
+                lat = fields.get("position_lat")
+                lon = fields.get("position_long")
+                if lat is not None and lon is not None:
+                    coords.append({"lat": lat * SEMICIRCLE_FACTOR, "lon": lon * SEMICIRCLE_FACTOR})
+
+    except Exception as e:
+        print(f"Track parse error for {filename}: {e}")
+        return {"coords": [], "error": str(e)}
+
+    return {"coords": coords}
 
 @app.get("/api/news")
 def get_news():
