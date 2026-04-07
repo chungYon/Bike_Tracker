@@ -28,10 +28,10 @@ def load_data():
     try:
         csv_path = os.path.join(STRAVA_DATA_DIR, "activities.csv")
         try:
-            # Try strict UTF-8 first so it fails if it's CP949
-            activities_df = pd.read_csv(csv_path, encoding='utf-8')
+            # Korean Windows usually downloads Strava CSV as CP949/EUC-KR.
+            activities_df = pd.read_csv(csv_path, encoding='cp949')
         except UnicodeDecodeError:
-            activities_df = pd.read_csv(csv_path, encoding='cp949', encoding_errors='replace')
+            activities_df = pd.read_csv(csv_path, encoding='utf-8', encoding_errors='replace')
         
         # Parse dates and convert from UTC to Korean time
         # The CSV likely has timestamps such as "Apr 5, 2026, 12:00:00 AM" which are naive.

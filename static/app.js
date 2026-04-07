@@ -152,8 +152,8 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById('activity-title').textContent = data['Activity Name'] || "Ride";
             document.getElementById('activity-date').textContent = data['Activity Date'] || "Unknown date";
 
-            // Format numbers
-            const dist = data['Distance'] ? parseFloat(data['Distance']).toFixed(2) : "0.00";
+            // Format numbers (Strava Distance is in meters, so divide by 1000)
+            const dist = data['Distance'] ? (parseFloat(data['Distance']) / 1000).toFixed(2) : "0.00";
             document.getElementById('act-dist').textContent = dist;
 
             const time = data['Moving Time'] ? (parseFloat(data['Moving Time']) / 60).toFixed(0) : "0";
@@ -175,7 +175,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             // Charts
-            if (data.gpx_available) {
+            // Check specifically if the source file is a FIT file for charts, as requested
+            const hasFit = data.gpx_path && data.gpx_path.toLowerCase().includes('.fit');
+            if (hasFit) {
                 document.getElementById('charts-container').classList.remove('blurred');
                 document.getElementById('no-fit-overlay').classList.add('hidden');
             } else {
