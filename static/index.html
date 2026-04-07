@@ -62,45 +62,8 @@
         <!-- Analysis View -->
         <div id="analysis-view" class="hidden">
             <button id="back-btn" class="glass-btn"><i class="fa-solid fa-arrow-left"></i> Back to Calendar</button>
-            <div class="analysis-header glass-card">
-                <h2 id="activity-title">Activity Name</h2>
-                <p id="activity-date">Date</p>
-                <div class="stats-row">
-                    <div class="stat"><i class="fa-solid fa-road"></i> <span id="act-dist"></span> km</div>
-                    <div class="stat"><i class="fa-solid fa-stopwatch"></i> <span id="act-time"></span> min</div>
-                    <div class="stat"><i class="fa-solid fa-bolt"></i> <span id="act-spd"></span> km/h</div>
-                </div>
-            </div>
-
-            <div class="map-container glass-card" id="map-container">
-                <div id="map"></div>
-                <div id="no-gpx-msg" class="hidden">No GPX data available for this activity.</div>
-            </div>
-
-            <div class="charts-wrapper" style="position: relative;">
-                <div class="charts-container" id="charts-container">
-                    <div class="chart-card glass-card">
-                        <canvas id="speedChart"></canvas>
-                    </div>
-                    <div class="chart-card glass-card">
-                        <canvas id="hrChart"></canvas>
-                    </div>
-                    <div class="chart-card glass-card">
-                        <canvas id="cadenceChart"></canvas>
-                    </div>
-                </div>
-                <div id="no-fit-overlay" class="hidden">
-                    <div class="overlay-content">
-                        <i class="fa-solid fa-chart-line"></i>
-                        <p>해당 활동의 기록 데이터(FIT)가 없어 차트가 제공되지 않습니다.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="photos-container glass-card hidden" id="photos-container">
-                <h3><i class="fa-solid fa-camera"></i> Photos</h3>
-                <div class="photo-gallery" id="photo-gallery"></div>
-            </div>
+            <!-- Activity cards are dynamically injected here -->
+            <div id="activities-container"></div>
         </div>
     </main>
 

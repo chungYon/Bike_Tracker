@@ -16,8 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentDate = new Date();
     let activitiesDates = [];
 
-    let mapInstance = null;
-    let gpxLayer = null;
+    let mapInstances = [];
     let charts = {};
 
     // Initialize
@@ -134,9 +133,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (acts) {
                 dayDiv.classList.add('ride-day');
                 
-                // Allow clicking the entire day cell
+                // Allow clicking the entire day cell - pass all IDs for the day
                 if (acts['Activity ID'].length > 0) {
-                    dayDiv.onclick = () => openAnalysis(acts['Activity ID'][0]);
+                    dayDiv.onclick = () => openAnalysis(acts['Activity ID']);
                 }
 
                 // Show a single indicator (with count if multiple rides that day)
@@ -153,76 +152,98 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    async function openAnalysis(activityId) {
+    async function openAnalysis(activityIds) {
         dashboardView.classList.add('hidden');
         analysisView.classList.remove('hidden');
 
-        try {
-            const res = await fetch(`/api/activity/${activityId}`);
-            const data = await res.json();
+        const container = document.getElementById('activities-container');
+        container.innerHTML = ''; // Clear previous
 
-            if (data.error) {
-                alert("Could not load activity: " + data.error);
-                return;
+        // Destroy old chart instances
+        Object.values(charts).forEach(c => c.destroy());
+        charts = {};
+
+        // Destroy old map instances
+        if (mapInstances) {
+            mapInstances.forEach(m => m && m.remove());
+        }
+        mapInstances = [];
+
+        for (let i = 0; i < activityIds.length; i++) {
+            const actId = activityIds[i];
+            try {
+                const res = await fetch(`/api/activity/${actId}`);
+                const data = await res.json();
+                if (data.error) continue;
+
+                // Create card
+                const card = document.createElement('div');
+                card.className = 'activity-card-section';
+                card.innerHTML = `
+                    <div class="analysis-header glass-card">
+                        <h2>${data['Activity Name'] || 'Ride'}</h2>
+                        <p>${data['Activity Date'] || ''}</p>
+                        <div class="stats-row">
+                            <div class="stat"><i class="fa-solid fa-road"></i> ${(parseFloat(data['Distance'] || 0) / 1000).toFixed(2)} km</div>
+                            <div class="stat"><i class="fa-solid fa-stopwatch"></i> ${(parseFloat(data['Moving Time'] || 0) / 60).toFixed(0)} min</div>
+                            <div class="stat"><i class="fa-solid fa-bolt"></i> ${parseFloat(data['Average Speed(km/h)'] || data['Average Speed'] || 0).toFixed(1)} km/h</div>
+                        </div>
+                    </div>
+                    <div class="map-container glass-card">
+                        <div id="map-${actId}" style="height:400px;"></div>
+                        <div id="no-gpx-msg-${actId}" class="hidden" style="padding:1rem;text-align:center;">No GPX data available.</div>
+                    </div>
+                    <div class="charts-wrapper" style="position:relative;">
+                        <div class="charts-container" id="charts-container-${actId}">
+                            <div class="chart-card glass-card"><canvas id="speedChart-${actId}"></canvas></div>
+                            <div class="chart-card glass-card"><canvas id="hrChart-${actId}"></canvas></div>
+                            <div class="chart-card glass-card"><canvas id="cadenceChart-${actId}"></canvas></div>
+                        </div>
+                        <div id="no-fit-overlay-${actId}" class="hidden">
+                            <div class="overlay-content">
+                                <i class="fa-solid fa-chart-line"></i>
+                                <p>해당 활동의 기록 데이터(FIT)가 없어 차트가 제공되지 않습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+
+                // Map
+                if (data.gpx_available) {
+                    document.getElementById(`no-gpx-msg-${actId}`).classList.add('hidden');
+                    setTimeout(() => loadMapInto(`map-${actId}`, data.gpx_path, actId), 400);
+                } else {
+                    document.getElementById(`no-gpx-msg-${actId}`).classList.remove('hidden');
+                    document.getElementById(`map-${actId}`).style.display = 'none';
+                }
+
+                // Charts
+                const hasFit = data.gpx_path && data.gpx_path.toLowerCase().includes('.fit');
+                if (hasFit) {
+                    document.getElementById(`charts-container-${actId}`).classList.remove('blurred');
+                    document.getElementById(`no-fit-overlay-${actId}`).classList.add('hidden');
+                } else {
+                    document.getElementById(`charts-container-${actId}`).classList.add('blurred');
+                    document.getElementById(`no-fit-overlay-${actId}`).classList.remove('hidden');
+                }
+                renderChartsFor(actId, data);
+
+            } catch (e) {
+                console.error(e);
             }
-
-            document.getElementById('activity-title').textContent = data['Activity Name'] || "Ride";
-            document.getElementById('activity-date').textContent = data['Activity Date'] || "Unknown date";
-
-            // Format numbers (Strava Distance is in meters, so divide by 1000)
-            const dist = data['Distance'] ? (parseFloat(data['Distance']) / 1000).toFixed(2) : "0.00";
-            document.getElementById('act-dist').textContent = dist;
-
-            const time = data['Moving Time'] ? (parseFloat(data['Moving Time']) / 60).toFixed(0) : "0";
-            document.getElementById('act-time').textContent = time;
-
-            // Strava CSV has 'Average Speed(km/h)' or 'Average Speed'. 
-            // Based on earlier logs, it is 'Average Speed(km/h)'
-            let rawSpd = data['Average Speed(km/h)'] || data['Average Speed'] || 0;
-            document.getElementById('act-spd').textContent = parseFloat(rawSpd).toFixed(1);
-
-            // Map & GPX
-            if (data.gpx_available) {
-                document.getElementById('no-gpx-msg').classList.add('hidden');
-                document.getElementById('map').style.display = 'block';
-                // Small delay to allow CSS transitions to finish before Leaflet calculates size
-                setTimeout(() => loadMap(data.gpx_path), 400);
-            } else {
-                document.getElementById('no-gpx-msg').classList.remove('hidden');
-                document.getElementById('map').style.display = 'none';
-            }
-
-            // Charts
-            // Check specifically if the source file is a FIT file for charts, as requested
-            const hasFit = data.gpx_path && data.gpx_path.toLowerCase().includes('.fit');
-            if (hasFit) {
-                document.getElementById('charts-container').classList.remove('blurred');
-                document.getElementById('no-fit-overlay').classList.add('hidden');
-            } else {
-                document.getElementById('charts-container').classList.add('blurred');
-                document.getElementById('no-fit-overlay').classList.remove('hidden');
-            }
-            renderCharts(data);
-
-        } catch (e) {
-            console.error(e);
         }
     }
 
-    function loadMap(gpxUrl) {
-        // Destroy existing map instance if it exists to avoid blank tile/bounds issue
-        if (mapInstance) {
-            mapInstance.remove();
-            mapInstance = null;
-            gpxLayer = null;
-        }
-
-        mapInstance = L.map('map').setView([37.5, 127.0], 12);
+    function loadMapInto(mapDivId, gpxUrl, actId) {
+        const m = L.map(mapDivId).setView([37.5, 127.0], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap'
-        }).addTo(mapInstance);
+        }).addTo(m);
 
-        gpxLayer = new L.GPX(gpxUrl, {
+        mapInstances.push(m);
+
+        new L.GPX(gpxUrl, {
             async: true,
             marker_options: {
                 startIconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-icon-start.png',
@@ -230,41 +251,31 @@ document.addEventListener("DOMContentLoaded", () => {
                 shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-shadow.png'
             }
         }).on('loaded', function (e) {
-            mapInstance.invalidateSize();
-            mapInstance.fitBounds(e.target.getBounds());
-        }).addTo(mapInstance);
+            m.invalidateSize();
+            m.fitBounds(e.target.getBounds());
+        }).addTo(m);
     }
 
-    function renderCharts(data) {
-        // destroy existing
-        Object.values(charts).forEach(c => c.destroy());
-        charts = {};
-
-        createPlaceholderChart('speedChart', 'Avg Speed (km/h)', (parseFloat(data['Average Speed'] || 0) * 3.6), 'rgba(54, 162, 235, 0.6)');
-        createPlaceholderChart('hrChart', 'Avg HR (bpm)', data['Average Heart Rate'] || 0, 'rgba(255, 99, 132, 0.6)');
-        createPlaceholderChart('cadenceChart', 'Avg Cadence', data['Average Cadence'] || 0, 'rgba(75, 192, 192, 0.6)');
+    function renderChartsFor(actId, data) {
+        const speedVal = parseFloat(data['Average Speed(km/h)'] || data['Average Speed'] || 0);
+        createChart(`speedChart-${actId}`, 'Avg Speed (km/h)', speedVal, 'rgba(54, 162, 235, 0.6)');
+        createChart(`hrChart-${actId}`, 'Avg HR (bpm)', data['Average Heart Rate'] || 0, 'rgba(255, 99, 132, 0.6)');
+        createChart(`cadenceChart-${actId}`, 'Avg Cadence', data['Average Cadence'] || 0, 'rgba(75, 192, 192, 0.6)');
     }
 
-    function createPlaceholderChart(id, label, val, color) {
+    function createChart(id, label, val, color) {
         const ctx = document.getElementById(id);
         if (!ctx) return;
         charts[id] = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: [label],
-                datasets: [{
-                    label: label,
-                    data: [parseFloat(val)],
-                    backgroundColor: color,
-                    borderWidth: 1
-                }]
+                datasets: [{ label, data: [parseFloat(val)], backgroundColor: color, borderWidth: 1 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: {
-                    y: { beginAtZero: true }
-                }
+                scales: { y: { beginAtZero: true } }
             }
         });
     }
