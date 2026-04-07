@@ -20,9 +20,6 @@ app.add_middleware(
 
 STRAVA_DATA_DIR = os.getenv("STRAVA_DATA_DIR", r"C:\Users\apf_temp_admin\Documents\strava_activity\export_55559181")
 
-# Mount the Strava data dir so that GPX/FIT files can be downloaded by the browser
-app.mount("/data", StaticFiles(directory=STRAVA_DATA_DIR), name="data")
-
 # Load activities data
 activities_df = None
 
